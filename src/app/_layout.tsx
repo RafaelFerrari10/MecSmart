@@ -1,18 +1,84 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme } from 'react-native';
+import { useEffect, useState } from 'react';
+import {
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../../firebase/config';
 
-SplashScreen.preventAutoHideAsync();
+export default function HomeScreen() {
+  const [status, setStatus] = useState('Testando conexão...');
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  useEffect(() => {
+    testarFirebase();
+  }, []);
+
+  async function testarFirebase() {
+    try {
+      await getDocs(collection(db, 'teste'));
+
+      setStatus('🔥 Firebase conectado!');
+    } catch (error) {
+      console.error(error);
+
+      setStatus('❌ Erro ao conectar ao Firebase');
+    }
+  }
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
-    </ThemeProvider>
+    <View style={styles.container}>
+      <Text style={styles.logo}>
+        MecSmart
+      </Text>
+
+      <Text style={styles.subtitle}>
+        Gestão inteligente para oficinas
+      </Text>
+
+      <View style={styles.card}>
+        <Text style={styles.status}>
+          {status}
+        </Text>
+      </View>
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0B0B0B',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+
+  logo: {
+    color: '#FFFFFF',
+    fontSize: 42,
+    fontWeight: '800',
+  },
+
+  subtitle: {
+    color: '#A0A0A0',
+    fontSize: 16,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+
+  card: {
+    marginTop: 40,
+    paddingVertical: 18,
+    paddingHorizontal: 28,
+    backgroundColor: '#181818',
+    borderRadius: 16,
+  },
+
+  status: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+});

@@ -4,19 +4,19 @@ import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
-    apiKey: "AIzaSyD-moetp13fyL-1w8EmFiXdaCzI36KmpDs",
-    authDomain: "mecsmart-9338b.firebaseapp.com",
-    projectId: "mecsmart-9338b",
-    storageBucket: "mecsmart-9338b.firebasestorage.app",
-    messagingSenderId: "697602791479",
-    appId: "1:697602791479:web:20bccd64f86852b85907b2",
-    measurementId: "G-BD67FMD5FL"
+  apiKey: "AIzaSyCCs46YjBnQFVFOUkMzMKvMIR11rE9ifQ4",
+  authDomain: "mecsmart-e69c6.firebaseapp.com",
+  projectId: "mecsmart-e69c6",
+  storageBucket: "mecsmart-e69c6.firebasestorage.app",
+  messagingSenderId: "667449621235",
+  appId: "1:667449621235:web:22448cfd07f8e5f44e5586"
 };
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-export const db = getFirestore(app);
+export { app, auth, db, storage };
 
-export const storage = getStorage(app);

@@ -14,23 +14,40 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { definirUsuarioLogado, perfilAtual, type Perfil } from '@/store';
+import { login } from '@/services/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [perfil, setPerfil] = useState<Perfil>(perfilAtual);
 
-  function handleLogin() {
+  const OPCOES_PERFIL: { chave: Perfil; rotulo: string }[] = [
+    { chave: 'cliente', rotulo: 'Cliente' },
+    { chave: 'mecanico', rotulo: 'Mecânico' },
+  ];
+
+  async function handleLogin() {
     if (!email || !senha) {
       Alert.alert('Atenção', 'Preencha seu e-mail e sua senha.');
       return;
     }
 
-    // Aqui posteriormente entra a autenticação do Firebase
-    console.log('Login:', {
-      email,
-      senha,
-    });
+    try {
+      const resultado = await login(email, senha);
+      if (resultado.usuario.tipo !== perfil) {
+        Alert.alert(
+          'Perfil incompatível',
+          'A conta encontrada não corresponde ao perfil selecionado.',
+        );
+        return;
+      }
+      definirUsuarioLogado(resultado.usuario);
+      router.replace('/vistorias');
+    } catch (erro) {
+      Alert.alert('Erro no login', erro instanceof Error ? erro.message : 'Tente novamente.');
+    }
   }
 
   function handleEsqueciSenha() {
@@ -118,6 +135,32 @@ export default function LoginScreen() {
                 Esqueceu sua senha?
               </Text>
             </Pressable>
+
+            {/* ENTRAR COMO */}
+            <View style={styles.perfilContainer}>
+              {OPCOES_PERFIL.map((opcao) => {
+                const selecionado = perfil === opcao.chave;
+                return (
+                  <Pressable
+                    key={opcao.chave}
+                    onPress={() => setPerfil(opcao.chave)}
+                    style={[
+                      styles.perfilOption,
+                      selecionado && styles.perfilOptionSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.perfilText,
+                        selecionado && styles.perfilTextSelected,
+                      ]}
+                    >
+                      {opcao.rotulo}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
 
             {/* ENTRAR */}
             <Pressable
@@ -229,6 +272,35 @@ const styles = StyleSheet.create({
   forgotButton: {
     alignItems: 'center',
     marginTop: 10,
+  },
+
+  perfilContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+  },
+
+  perfilOption: {
+    flex: 1,
+    height: 36,
+    backgroundColor: '#303030',
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  perfilOptionSelected: {
+    backgroundColor: '#F3222A',
+  },
+
+  perfilText: {
+    color: '#9A9A9A',
+    fontSize: 10,
+    fontWeight: '700',
+  },
+
+  perfilTextSelected: {
+    color: '#FFFFFF',
   },
 
   forgotText: {

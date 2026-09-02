@@ -15,6 +15,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
+import { definirUsuarioLogado } from '@/store';
+import { cadastrar } from '@/services/api';
 
 type Perfil = 'mecanico' | 'cliente' | null;
 
@@ -56,8 +58,13 @@ export default function CadastroScreen() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [perfil, setPerfil] = useState<Perfil>(null);
+  const [especialidade, setEspecialidade] = useState('');
+  const [endereco, setEndereco] = useState('');
+  const [complemento, setComplemento] = useState('');
 
-  function handleCadastrar() {
+  const [carregando, setCarregando] = useState(false);
+
+  async function handleCadastrar() {
     if (!nome || !cpf || !telefone || !dataNascimento || !email || !senha || !confirmarSenha) {
       Alert.alert('Atenção', 'Preencha todos os campos.');
       return;
@@ -88,16 +95,39 @@ export default function CadastroScreen() {
       return;
     }
 
+    if (perfil === 'mecanico' && !especialidade.trim()) {
+      Alert.alert('Atenção', 'Informe sua especialidade.');
+      return;
+    }
+
+    if (perfil === 'cliente' && !endereco.trim()) {
+      Alert.alert('Atenção', 'Informe seu endereço.');
+      return;
+    }
+
     // Aqui posteriormente entra o cadastro do Firebase
-    console.log('Cadastro:', {
-      nome,
-      cpf,
-      telefone,
-      dataNascimento,
-      email,
-      senha,
-      perfil,
-    });
+    setCarregando(true);
+    try {
+      const resultado = await cadastrar({
+        tipo: perfil,
+        nome,
+        email,
+        senha,
+        dataNascimento,
+        telefone,
+        cpf,
+        especialidade: perfil === 'mecanico' ? especialidade : undefined,
+        endereco: perfil === 'cliente' ? endereco : undefined,
+        complemento: perfil === 'cliente' ? complemento : undefined,
+      });
+
+      definirUsuarioLogado(resultado.usuario);
+      router.replace('/vistorias');
+    } catch (erro) {
+      Alert.alert('Erro no cadastro', erro instanceof Error ? erro.message : 'Tente novamente.');
+    } finally {
+      setCarregando(false);
+    }
   }
 
   return (
@@ -289,6 +319,43 @@ export default function CadastroScreen() {
                 </Text>
               </Pressable>
             </View>
+
+            {/* ESPECIALIDADE (mecânico) */}
+            {perfil === 'mecanico' && (
+              <>
+                <Text style={[styles.label, styles.fieldSpacing]}>Especialidade</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Ex.: Motor e suspensão"
+                  placeholderTextColor="#9A9A9A"
+                  value={especialidade}
+                  onChangeText={setEspecialidade}
+                />
+              </>
+            )}
+
+            {/* ENDEREÇO (cliente) */}
+            {perfil === 'cliente' && (
+              <>
+                <Text style={[styles.label, styles.fieldSpacing]}>Endereço</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Rua, número, bairro"
+                  placeholderTextColor="#9A9A9A"
+                  value={endereco}
+                  onChangeText={setEndereco}
+                />
+
+                <Text style={[styles.label, styles.fieldSpacing]}>Complemento</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Apto, bloco (opcional)"
+                  placeholderTextColor="#9A9A9A"
+                  value={complemento}
+                  onChangeText={setComplemento}
+                />
+              </>
+            )}
 
             {/* CADASTRAR */}
             <Pressable

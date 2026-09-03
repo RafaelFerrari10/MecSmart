@@ -181,7 +181,8 @@ async function requisicao<T>(metodo: string, rota: string, corpo?: unknown): Pro
 export async function cadastrar(
   dados: Record<string, unknown>,
 ): Promise<{ usuario: UsuarioCompleto }> {
-  return requisicao<{ usuario: UsuarioCompleto }>('POST', '/cadastro', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ usuario: UsuarioCompleto }>('POST', '/cadastro-firebase', dados);
 }
 
 export async function login(
@@ -236,7 +237,8 @@ export async function buscarVeiculo(id: string): Promise<{ veiculo: Veiculo }> {
 export async function criarVeiculo(
   dados: Omit<Veiculo, 'id' | 'ativo' | 'criadoEm'>,
 ): Promise<{ veiculo: Veiculo }> {
-  return requisicao<{ veiculo: Veiculo }>('POST', '/veiculos', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ veiculo: Veiculo }>('POST', '/veiculos-firebase', dados);
 }
 
 export async function atualizarVeiculo(
@@ -272,7 +274,8 @@ export async function listarPecas(busca?: string): Promise<{ pecas: Peca[] }> {
 }
 
 export async function criarPeca(dados: Partial<Peca>): Promise<{ peca: Peca }> {
-  return requisicao<{ peca: Peca }>('POST', '/pecas', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ peca: Peca }>('POST', '/pecas-firebase', dados);
 }
 
 export async function buscarPeca(id: string): Promise<{ peca: Peca }> {
@@ -322,7 +325,8 @@ export async function listarItensOS(
 }
 
 export async function criarItemOS(dados: Partial<ItemOS>): Promise<{ itemOS: ItemOS }> {
-  return requisicao<{ itemOS: ItemOS }>('POST', '/itensOS', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ itemOS: ItemOS }>('POST', '/itensOS-firebase', dados);
 }
 
 export async function buscarItemOS(id: string): Promise<{ itemOS: ItemOS }> {
@@ -356,7 +360,8 @@ export async function listarFinanceiro(
 export async function criarLancamento(
   dados: Partial<Financeiro>,
 ): Promise<{ financeiro: Financeiro }> {
-  return requisicao<{ financeiro: Financeiro }>('POST', '/financeiro', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ financeiro: Financeiro }>('POST', '/financeiro-firebase', dados);
 }
 
 export async function pagarLancamento(id: string): Promise<{ financeiro: Financeiro }> {
@@ -402,7 +407,8 @@ export async function listarAgendamentos(
 export async function criarAgendamento(
   dados: Partial<Agendamento>,
 ): Promise<{ agendamento: Agendamento }> {
-  return requisicao<{ agendamento: Agendamento }>('POST', '/agendamentos', dados);
+  // 🔥 ALTERADO: Agora chama a rota Firebase!
+  return requisicao<{ agendamento: Agendamento }>('POST', '/agendamentos-firebase', dados);
 }
 
 export async function alterarStatusAgendamento(

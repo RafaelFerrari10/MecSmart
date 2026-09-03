@@ -4,6 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { Condicao } from '@/store';
 
+function ProfileIconButton() {
+  return (
+    <Pressable style={styles.profileButton} onPress={() => router.push('/perfil')}>
+      <Ionicons name="person-circle-outline" size={26} color={CORES.branco} />
+    </Pressable>
+  );
+}
+
 export const CORES = {
   preto: '#000000',
   branco: '#FFFFFF',
@@ -61,10 +69,12 @@ export function ScreenHeader({
   titulo,
   voltar,
   direita,
+  esconderPerfil,
 }: {
   titulo: string;
   voltar?: boolean;
   direita?: React.ReactNode;
+  esconderPerfil?: boolean;
 }) {
   return (
     <View style={styles.header}>
@@ -76,7 +86,7 @@ export function ScreenHeader({
         <View style={styles.headerSide} />
       )}
       <Text style={styles.headerTitle}>{titulo}</Text>
-      {direita ?? <View style={styles.headerSide} />}
+      {direita ?? (!esconderPerfil ? <ProfileIconButton /> : <View style={styles.headerSide} />)}
     </View>
   );
 }
@@ -174,6 +184,12 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
   },
   backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  profileButton: {
     width: 40,
     height: 40,
     alignItems: 'center',

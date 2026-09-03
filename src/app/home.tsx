@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { CORES, GradientBackground } from '@/components/ui';
+import { CORES, GradientBackground, ScreenHeader } from '@/components/ui';
 import { listarVeiculos } from '@/services/api';
 import {
   ordensServico,
@@ -23,6 +23,7 @@ export default function HomeScreen() {
       <GradientBackground />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.inner}>
+          <ScreenHeader titulo="Início" voltar />
           {mecanico ? (
             <MechanicHome nome={nome} />
           ) : (

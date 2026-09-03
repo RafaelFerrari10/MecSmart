@@ -17,6 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { definirUsuarioLogado } from '@/store';
 import { cadastrar } from '@/services/api';
+import { ScreenHeader } from '@/components/ui';
 
 type Perfil = 'mecanico' | 'cliente' | null;
 
@@ -148,6 +149,8 @@ export default function CadastroScreen() {
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
         >
+          <ScreenHeader titulo="Cadastro" voltar esconderPerfil />
+
           {/* LOGO */}
           <View style={styles.logoContainer}>
             <Image

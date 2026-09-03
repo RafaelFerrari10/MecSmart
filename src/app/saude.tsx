@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -12,25 +13,16 @@ import {
 import { vistoriaEmAndamento, type Condicao } from '@/store';
 
 export default function SaudeScreen() {
-  const condicoes: Condicao[] = [
-    'ok',
-    'atencao',
-    'ok',
-    'problema',
-    'ok',
-    'atencao',
-    'ok',
-    'ok',
-    'ok',
-    'ok',
-  ];
-  const piores: Record<Condicao, number> = { problema: 3, atencao: 2, ok: 1 };
-  const geral =
-    condicoes.reduce((acc, c) => Math.min(acc, piores[c]), 3) === 3
-      ? 'ok'
-      : condicoes.reduce((acc, c) => Math.min(acc, piores[c]), 3) === 2
-        ? 'atencao'
-        : 'problema';
+  const checklist = vistoriaEmAndamento.checklist;
+  const condicoes = useMemo(() => checklist.map((item) => item.condicao), [checklist]);
+
+  const geral: Condicao = useMemo(() => {
+    const piores: Record<Condicao, number> = { ok: 3, atencao: 2, problema: 1 };
+    const menor = condicoes.reduce((acc, c) => Math.min(acc, piores[c]), 3);
+    if (menor === 1) return 'problema';
+    if (menor === 2) return 'atencao';
+    return 'ok';
+  }, [condicoes]);
 
   function enviar() {
     router.replace('/home');
@@ -44,7 +36,7 @@ export default function SaudeScreen() {
 
         <View style={styles.cartao}>
           <Text style={styles.titulo}>Saúde do veículo</Text>
-          {vistoriaEmAndamento.checklist.map((item) => (
+          {checklist.map((item) => (
             <CondicaoItem key={item.nome} nome={item.nome} condicao={item.condicao} />
           ))}
         </View>

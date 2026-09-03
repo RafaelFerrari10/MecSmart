@@ -22,6 +22,15 @@ export const CHECKLIST_ITENS = [
   'Fluidos',
   'Carroceria',
   'Interior',
+  'Ar-Condicionado',
+  'Transmissão',
+  'Direção',
+  'Escapamento',
+  'Vista Externa',
+  'Vista Interna',
+  'Documentação',
+  'Itens de Segurança',
+  'Geral',
 ];
 
 export interface Usuario {

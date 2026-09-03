@@ -22,7 +22,7 @@ export default function RetiradaScreen() {
 
   function confirmar() {
     setMostrarPopup(false);
-    router.replace('/vistorias');
+    router.replace('/home');
   }
 
   return (

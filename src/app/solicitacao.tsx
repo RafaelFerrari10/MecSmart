@@ -101,7 +101,7 @@ export default function SolicitacaoScreen() {
               <Botao titulo="Receber vistoria" onPress={receber} />
             </View>
           ) : (
-            <Botao titulo="Aguardando mecânico" onPress={() => router.push('/vistorias')} />
+            <Botao titulo="Aguardando mecânico" onPress={() => router.push('/home')} />
           )}
         </Card>
       </View>

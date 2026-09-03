@@ -122,7 +122,7 @@ export default function CadastroScreen() {
       });
 
       definirUsuarioLogado(resultado.usuario);
-      router.replace('/vistorias');
+      router.replace('/home');
     } catch (erro) {
       Alert.alert('Erro no cadastro', erro instanceof Error ? erro.message : 'Tente novamente.');
     } finally {

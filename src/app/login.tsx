@@ -44,7 +44,7 @@ export default function LoginScreen() {
         return;
       }
       definirUsuarioLogado(resultado.usuario);
-      router.replace('/vistorias');
+      router.replace('/home');
     } catch (erro) {
       Alert.alert('Erro no login', erro instanceof Error ? erro.message : 'Tente novamente.');
     }

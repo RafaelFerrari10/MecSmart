@@ -33,7 +33,7 @@ export default function SaudeScreen() {
         : 'problema';
 
   function enviar() {
-    router.replace('/vistorias');
+    router.replace('/home');
   }
 
   return (

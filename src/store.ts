@@ -51,6 +51,10 @@ export interface Cliente {
   ativo: boolean;
 }
 
+export type Combustivel = 'Gasolina' | 'Flex' | 'Diesel' | 'Elétrico' | 'Híbrido';
+
+export const COMBUSTIVEIS: Combustivel[] = ['Gasolina', 'Flex', 'Diesel', 'Elétrico', 'Híbrido'];
+
 export interface Veiculo {
   id: string;
   clienteId: string;
@@ -60,6 +64,7 @@ export interface Veiculo {
   ano: number;
   cor: string;
   quilometragem: number;
+  combustivel?: Combustivel;
   foto: string;
   ativo: boolean;
 }
@@ -152,6 +157,7 @@ export const VEICULO_VAZIO: Veiculo = {
   ano: 2024,
   cor: '',
   quilometragem: 0,
+  combustivel: 'Gasolina',
   foto: '',
   ativo: true,
 };

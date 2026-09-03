@@ -72,6 +72,8 @@ export default function DetalhesAgendamentoScreen() {
             <Botao titulo="Cancelar Agendamento" variante="contorno" onPress={() => alterar('cancelar', 'Agendamento cancelado!')} estilo={styles.botao} />
           )}
 
+          <Botao titulo="Editar Agendamento" onPress={() => router.push('/editar-agendamento')} estilo={styles.botao} />
+
           <Botao titulo="Excluir" variante="contorno" onPress={() => setConfirmandoExcluir(true)} estilo={styles.botaoExcluir} />
         </ScrollView>
       </View>

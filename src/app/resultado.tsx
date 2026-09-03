@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
@@ -12,10 +13,25 @@ import {
   ScreenHeader,
   StatusBadge,
 } from '@/components/ui';
-import { buscarUsuario, buscarVeiculo, ordensServico } from '@/store';
+import { listarOrdensServico } from '@/services/api';
+import { buscarUsuario, buscarVeiculo, ordensServico, type OrdemServico } from '@/store';
 
 export default function ResultadoScreen() {
-  const os = ordensServico[0];
+  const [os, setOs] = useState<OrdemServico | null>(ordensServico[0] ?? null);
+
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        const { ordens } = await listarOrdensServico();
+        if (ativo && ordens.length > 0) setOs(ordens[0]);
+      } catch {
+        // servidor indisponível; mantém o fallback do store
+      }
+    })();
+    return () => { ativo = false; };
+  }, []);
+
   const veiculo = os ? buscarVeiculo(os.veiculoId) : undefined;
   const mecanico = os ? buscarUsuario(os.mecanicoId) : undefined;
   const nomeVeiculo = veiculo ? `${veiculo.marca} ${veiculo.modelo}`.trim() : '—';

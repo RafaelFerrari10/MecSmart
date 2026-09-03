@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { Card, CORES, GradientBackground, ScreenHeader } from '@/components/ui';
 import { PopupConfirmacao } from '@/components/popup-confirmacao';
+import { definirItemOSSelecionado } from '@/store';
 import { listarItensOS, excluirItemOS, type ItemOS } from '@/services/api';
 
 const moeda = (v: number) => `R$ ${v.toFixed(2).replace('.', ',')}`;
@@ -90,13 +91,25 @@ export default function ItensOSScreen() {
                 <Text style={styles.cardQtd}>{item.quantidade} x {moeda(item.precoUnitario)}</Text>
                 <Text style={styles.cardSubtotal}>{moeda(item.subtotal)}</Text>
               </View>
-              <Pressable
-                style={({ pressed }) => [styles.excluirBtn, pressed && { opacity: 0.7 }]}
-                onPress={() => setExcluindo(item)}
-              >
-                <Ionicons name="trash-outline" size={16} color={CORES.vermelho} />
-                <Text style={styles.excluirTexto}>Remover</Text>
-              </Pressable>
+              <View style={styles.cardAcoes}>
+                <Pressable
+                  style={({ pressed }) => [styles.editarBtn, pressed && { opacity: 0.7 }]}
+                  onPress={() => {
+                    definirItemOSSelecionado(item);
+                    router.push('/editar-item-os');
+                  }}
+                >
+                  <Ionicons name="create-outline" size={16} color={CORES.azul} />
+                  <Text style={styles.editarTexto}>Editar</Text>
+                </Pressable>
+                <Pressable
+                  style={({ pressed }) => [styles.excluirBtn, pressed && { opacity: 0.7 }]}
+                  onPress={() => setExcluindo(item)}
+                >
+                  <Ionicons name="trash-outline" size={16} color={CORES.vermelho} />
+                  <Text style={styles.excluirTexto}>Remover</Text>
+                </Pressable>
+              </View>
             </Card>
           )}
         />
@@ -209,8 +222,23 @@ const styles = StyleSheet.create({
   excluirBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-end',
     gap: 5,
+  },
+  editarBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  editarTexto: {
+    color: CORES.azul,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  cardAcoes: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 16,
     marginTop: 10,
   },
   excluirTexto: {

@@ -12,6 +12,8 @@ import {
   StatusBadge,
 } from '@/components/ui';
 import { Popup } from '@/components/popup';
+import { alterarStatusOrdemServico } from '@/services/api';
+import { osIdEmAndamento } from '@/store';
 
 export default function RetiradaScreen() {
   const [mostrarPopup, setMostrarPopup] = useState(false);
@@ -22,6 +24,11 @@ export default function RetiradaScreen() {
 
   function confirmar() {
     setMostrarPopup(false);
+    if (osIdEmAndamento) {
+      alterarStatusOrdemServico(osIdEmAndamento, 'RETIRADA SOLICITADA').catch(() => {
+        // melhor esforço; falha silenciosa
+      });
+    }
     router.replace('/home');
   }
 

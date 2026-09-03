@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { CORES, GradientBackground, ScreenHeader } from '@/components/ui';
-import { listarVeiculos } from '@/services/api';
+import { listarOrdensServico, listarVeiculos } from '@/services/api';
 import {
   ordensServico,
   perfilAtual,
@@ -41,36 +41,38 @@ export default function HomeScreen() {
 function ClientHome({ nome }: { nome: string }) {
   const [veiculosCli, setVeiculosCli] = useState<Veiculo[]>(veiculos);
 
-  useEffect(() => {
-    let ativo = true;
-    (async () => {
-      try {
-        if (usuarioLogado?.uid) {
-          const dados = await listarVeiculos(usuarioLogado.uid);
-          if (ativo && dados.veiculos.length > 0) {
-            const convertidos: Veiculo[] = dados.veiculos.map((v) => ({
-              id: v.id,
-              clienteId: v.clienteId,
-              placa: v.placa,
-              marca: v.marca,
-              modelo: v.modelo,
-              ano: v.ano,
-              cor: v.cor,
-              quilometragem: v.quilometragem,
-              foto: v.foto ?? '',
-              ativo: v.ativo,
-            }));
-            setVeiculosCli(convertidos);
+  useFocusEffect(
+    useCallback(() => {
+      let ativo = true;
+      (async () => {
+        try {
+          if (usuarioLogado?.uid) {
+            const dados = await listarVeiculos(usuarioLogado.uid);
+            if (ativo) {
+              const convertidos: Veiculo[] = dados.veiculos.map((v) => ({
+                id: v.id,
+                clienteId: v.clienteId,
+                placa: v.placa,
+                marca: v.marca,
+                modelo: v.modelo,
+                ano: v.ano,
+                cor: v.cor,
+                quilometragem: v.quilometragem,
+                foto: v.foto ?? '',
+                ativo: v.ativo,
+              }));
+              setVeiculosCli(convertidos);
+            }
           }
+        } catch {
+          // servidor indisponível
         }
-      } catch {
-        // servidor indisponível
-      }
-    })();
-    return () => {
-      ativo = false;
-    };
-  }, []);
+      })();
+      return () => {
+        ativo = false;
+      };
+    }, []),
+  );
 
   const temVeiculo = veiculosCli.length > 0;
   const primeiroVeiculo = veiculosCli[veiculosCli.length - 1];
@@ -93,7 +95,7 @@ function ClientHome({ nome }: { nome: string }) {
           <Text style={styles.sub}>Cadastre seu primeiro carro!</Text>
           <Pressable
             style={({ pressed }) => [styles.cardCadastro, pressed && { opacity: 0.7 }]}
-            onPress={() => router.push('/nova-vistoria')}
+            onPress={() => router.push('/cadastrar-veiculo')}
           >
             <Ionicons name="car-outline" size={36} color={CORES.vermelho} />
             <Text style={styles.cardCadastroTexto}>Cadastrar carro</Text>
@@ -130,9 +132,9 @@ function ClientHome({ nome }: { nome: string }) {
 
           <Pressable
             style={({ pressed }) => [styles.cardAdicionar, pressed && { opacity: 0.7 }]}
-            onPress={() => router.push('/nova-vistoria')}
+            onPress={() => router.push('/cadastrar-veiculo')}
           >
-            <Text style={styles.cardAdicionarTexto}>Adicionar outro carro</Text>
+            <Text style={styles.cardAdicionarTexto}>Cadastrar outro carro</Text>
           </Pressable>
         </>
       )}
@@ -156,15 +158,29 @@ function ClientHome({ nome }: { nome: string }) {
 /* ------------------------------------------------------------------ */
 function MechanicHome({ nome }: { nome: string }) {
   const hoje = new Date().toLocaleDateString('pt-BR');
+  const [listaOs, setListaOs] = useState<OrdemServico[]>(ordensServico);
 
-  const paraHoje = ordensServico.filter(
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        const { ordens } = await listarOrdensServico();
+        if (ativo) setListaOs(ordens);
+      } catch {
+        // servidor indisponível: mantém o fallback do store
+      }
+    })();
+    return () => { ativo = false; };
+  }, []);
+
+  const paraHoje = listaOs.filter(
     (o: OrdemServico) => o.dataAbertura === hoje && o.status === 'PENDENTE',
   ).length;
-  const emAndamento = ordensServico.filter(
+  const emAndamento = listaOs.filter(
     (o: OrdemServico) =>
       o.status === 'EM ANÁLISE' || o.status === 'VISTORIA REALIZADA' || o.status === 'AGUARDANDO APROVAÇÃO',
   ).length;
-  const finalizados = ordensServico.filter(
+  const finalizados = listaOs.filter(
     (o: OrdemServico) => o.status === 'APROVADA' || o.status === 'RETIRADA SOLICITADA',
   ).length;
 

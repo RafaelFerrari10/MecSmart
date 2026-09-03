@@ -113,6 +113,31 @@ export interface Agendamento {
   observacoes: string;
 }
 
+export interface ChecklistResultado {
+  nome: string;
+  condicao: 'ok' | 'atencao' | 'problema';
+}
+
+export interface OrdemServico {
+  id: string;
+  numero: number;
+  clienteId: string;
+  veiculoId: string;
+  mecanicoId: string;
+  status: string;
+  dataAbertura: string;
+  dataConclusao: string | null;
+  valorTotal: number;
+  valorDesconto: number;
+  valorFinal: number;
+  observacoes: string;
+  problemas: string[];
+  condicao: 'ok' | 'atencao' | 'problema';
+  checklist?: ChecklistResultado[];
+  aprovada?: boolean;
+  retiradaSolicitada?: boolean;
+}
+
 interface RespostaErro {
   sucesso: false;
   erros?: string[];
@@ -183,6 +208,18 @@ export async function buscarUsuario(
   return requisicao<{ usuario: UsuarioCompleto }>('GET', `/usuarios/${uid}`);
 }
 
+export async function desativarUsuario(
+  uid: string,
+): Promise<{ usuario: UsuarioCompleto }> {
+  return requisicao<{ usuario: UsuarioCompleto }>('PATCH', `/usuarios/${uid}/desativar`);
+}
+
+export async function ativarUsuario(
+  uid: string,
+): Promise<{ usuario: UsuarioCompleto }> {
+  return requisicao<{ usuario: UsuarioCompleto }>('PATCH', `/usuarios/${uid}/ativar`);
+}
+
 /* --------------------------- Veiculos --------------------------- */
 
 export async function listarVeiculos(
@@ -207,6 +244,24 @@ export async function atualizarVeiculo(
   dados: Partial<Veiculo>,
 ): Promise<{ veiculo: Veiculo }> {
   return requisicao<{ veiculo: Veiculo }>('PUT', `/veiculos/${id}`, dados);
+}
+
+export async function desativarVeiculo(
+  id: string,
+): Promise<{ veiculo: Veiculo }> {
+  return requisicao<{ veiculo: Veiculo }>('PATCH', `/veiculos/${id}/desativar`);
+}
+
+export async function ativarVeiculo(
+  id: string,
+): Promise<{ veiculo: Veiculo }> {
+  return requisicao<{ veiculo: Veiculo }>('PATCH', `/veiculos/${id}/ativar`);
+}
+
+export async function excluirVeiculo(
+  id: string,
+): Promise<{ veiculo: Veiculo }> {
+  return requisicao<{ veiculo: Veiculo }>('DELETE', `/veiculos/${id}`);
 }
 
 /* --------------------------- Pecas --------------------------- */
@@ -237,6 +292,10 @@ export async function excluirPeca(id: string): Promise<{ peca: Peca }> {
 
 export async function desativarPeca(id: string): Promise<{ peca: Peca }> {
   return requisicao<{ peca: Peca }>('PATCH', `/pecas/${id}/desativar`);
+}
+
+export async function ativarPeca(id: string): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('PATCH', `/pecas/${id}/ativar`);
 }
 
 export async function adicionarEstoquePeca(
@@ -370,4 +429,56 @@ export async function excluirAgendamento(
   id: string,
 ): Promise<{ agendamento: Agendamento }> {
   return requisicao<{ agendamento: Agendamento }>('DELETE', `/agendamentos/${id}`);
+}
+
+/* --------------------------- Ordens de Serviço --------------------------- */
+
+export interface RespostaOrdem {
+  sucesso: boolean;
+  ordem: OrdemServico;
+}
+
+export interface RespostaListaOrdens {
+  sucesso: boolean;
+  ordens: OrdemServico[];
+}
+
+export async function listarOrdensServico(
+  filtros?: { clienteId?: string; veiculoId?: string; mecanicoId?: string; status?: string },
+): Promise<RespostaListaOrdens> {
+  const params = new URLSearchParams();
+  if (filtros?.clienteId) params.set('clienteId', filtros.clienteId);
+  if (filtros?.veiculoId) params.set('veiculoId', filtros.veiculoId);
+  if (filtros?.mecanicoId) params.set('mecanicoId', filtros.mecanicoId);
+  if (filtros?.status) params.set('status', filtros.status);
+  const qs = params.toString();
+  return requisicao<RespostaListaOrdens>('GET', `/ordensServico${qs ? `?${qs}` : ''}`);
+}
+
+export async function buscarOrdemServico(id: string): Promise<RespostaOrdem> {
+  return requisicao<RespostaOrdem>('GET', `/ordensServico/${id}`);
+}
+
+export async function criarOrdemServico(
+  dados: Partial<OrdemServico>,
+): Promise<RespostaOrdem> {
+  return requisicao<RespostaOrdem>('POST', '/ordensServico', dados);
+}
+
+export async function atualizarOrdemServico(
+  id: string,
+  dados: Partial<OrdemServico>,
+): Promise<RespostaOrdem> {
+  return requisicao<RespostaOrdem>('PUT', `/ordensServico/${id}`, dados);
+}
+
+export async function alterarStatusOrdemServico(
+  id: string,
+  status: string,
+): Promise<RespostaOrdem> {
+  return requisicao<RespostaOrdem>('PATCH', `/ordensServico/${id}/status`, { status });
+}
+
+export async function excluirOrdemServico(id: string): Promise<RespostaOrdem> {
+  return requisicao<RespostaOrdem>('DELETE', `/ordensServico/${id}`);
 }

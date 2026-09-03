@@ -12,13 +12,13 @@ import {
   ScreenHeader,
   StatusBadge,
 } from '@/components/ui';
-import { VEICULO_VAZIO, ordensServico } from '@/store';
-import { listarVeiculos, tipoVeiculo, type Veiculo } from '@/services/api';
-import { usuarioLogado } from '@/store';
+import { VEICULO_VAZIO, ordensServico, usuarioLogado, definirVeiculoSelecionado, type OrdemServico } from '@/store';
+import { listarVeiculos, listarOrdensServico, tipoVeiculo, type Veiculo } from '@/services/api';
 
 export default function CarroScreen() {
   const [veiculo, setVeiculo] = useState<Veiculo | null>(null);
-  const os = ordensServico[0];
+  const [osApi, setOsApi] = useState<OrdemServico | null>(null);
+  const os = osApi ?? ordensServico[0] ?? null;
   const problemas = os?.problemas ?? [];
 
   useEffect(() => {
@@ -27,12 +27,16 @@ export default function CarroScreen() {
       try {
         if (usuarioLogado?.tipo === 'cliente') {
           const dados = await listarVeiculos(usuarioLogado.uid);
-          if (ativo && dados.veiculos.length > 0) {
-            setVeiculo(tipoVeiculo(dados.veiculos[dados.veiculos.length - 1]));
+          if (!ativo) return;
+          if (dados.veiculos.length > 0) {
+            const v = tipoVeiculo(dados.veiculos[dados.veiculos.length - 1]);
+            setVeiculo(v);
+            const { ordens } = await listarOrdensServico({ veiculoId: v.id });
+            if (ativo && ordens.length > 0) setOsApi(ordens[0]);
           }
         }
       } catch {
-        // servidor indisponível: mantém vazio
+        // servidor indisponível: mantém fallback do store
       }
     })();
     return () => {
@@ -110,6 +114,16 @@ export default function CarroScreen() {
         </Card>
 
         <Botao titulo="Histórico de vistorias" onPress={() => router.push('/historico')} />
+        <Botao
+          titulo="Editar Veículo"
+          variante="contorno"
+          onPress={() => {
+            if (veiculo) {
+              definirVeiculoSelecionado(veiculo);
+              router.push('/editar-veiculo');
+            }
+          }}
+        />
       </View>
     </View>
   );

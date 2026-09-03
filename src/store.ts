@@ -1,3 +1,5 @@
+import type { Veiculo as VeiculoApi, ItemOS as ItemOSApi } from '@/services/api';
+
 export type Condicao = 'ok' | 'atencao' | 'problema';
 export type TipoUsuario = 'cliente' | 'mecanico';
 export type Perfil = TipoUsuario;
@@ -209,6 +211,24 @@ export function definirPecaSelecionada(peca: Peca | null) {
 }
 
 /* ------------------------------------------------------------------ */
+/* Veículo selecionado (fluxo detalhes / edição)                       */
+/* ------------------------------------------------------------------ */
+export let veiculoSelecionado: VeiculoApi | null = null;
+
+export function definirVeiculoSelecionado(veiculo: VeiculoApi | null) {
+  veiculoSelecionado = veiculo;
+}
+
+/* ------------------------------------------------------------------ */
+/* Item OS selecionado (fluxo edição)                                  */
+/* ------------------------------------------------------------------ */
+export let itemOSSelecionado: ItemOSApi | null = null;
+
+export function definirItemOSSelecionado(item: ItemOSApi | null) {
+  itemOSSelecionado = item;
+}
+
+/* ------------------------------------------------------------------ */
 /* Lançamento financeiro selecionado (detalhes)                        */
 /* ------------------------------------------------------------------ */
 export let lancamentoSelecionado: Financeiro | null = null;
@@ -318,3 +338,10 @@ export const vistoriaEmAndamento = {
   checklist: itemChecklistInicial(),
   observacoes: '',
 };
+
+/* Ordem de serviço em andamento (id retornado pela API no fluxo do mecânico) */
+export let osIdEmAndamento = '';
+
+export function definirOsIdEmAndamento(id: string) {
+  osIdEmAndamento = id;
+}

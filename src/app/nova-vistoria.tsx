@@ -180,7 +180,7 @@ export default function SolicitarVistoriaScreen() {
                 <Botao
                   titulo="Cadastrar veículo"
                   variante="contorno"
-                  onPress={() => router.back()}
+                  onPress={() => router.push('/cadastrar-veiculo')}
                 />
               </View>
             )}

@@ -5,6 +5,7 @@ const pecasRoutes = require('./routes/pecas');
 const itensOSRoutes = require('./routes/itensOS');
 const financeiroRoutes = require('./routes/financeiro');
 const agendamentosRoutes = require('./routes/agendamentos');
+const ordensServicoRoutes = require('./routes/ordensServico');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -26,6 +27,7 @@ app.use('/api', pecasRoutes);
 app.use('/api', itensOSRoutes);
 app.use('/api', financeiroRoutes);
 app.use('/api', agendamentosRoutes);
+app.use('/api', ordensServicoRoutes);
 
 app.get('/', (req, res) => {
   res.json({ status: 'API de cadastro da oficina rodando' });

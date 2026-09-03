@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Botao,
@@ -10,9 +10,11 @@ import {
   GradientBackground,
   ScreenHeader,
 } from '@/components/ui';
-import { vistoriaEmAndamento, type Condicao } from '@/store';
+import { vistoriaEmAndamento, type Condicao, osIdEmAndamento } from '@/store';
+import { atualizarOrdemServico, alterarStatusOrdemServico } from '@/services/api';
 
 export default function SaudeScreen() {
+  const [enviando, setEnviando] = useState(false);
   const checklist = vistoriaEmAndamento.checklist;
   const condicoes = useMemo(() => checklist.map((item) => item.condicao), [checklist]);
 
@@ -24,7 +26,31 @@ export default function SaudeScreen() {
     return 'ok';
   }, [condicoes]);
 
-  function enviar() {
+  async function enviar() {
+    if (enviando) return;
+    setEnviando(true);
+    try {
+      const problemas = checklist
+        .filter((item) => item.condicao === 'problema' || item.condicao === 'atencao')
+        .map((item) => `${item.nome}: ${CONDICAO_LABEL[item.condicao]}`);
+
+      if (osIdEmAndamento) {
+        await atualizarOrdemServico(osIdEmAndamento, {
+          checklist,
+          condicao: geral,
+          problemas,
+        });
+        await alterarStatusOrdemServico(osIdEmAndamento, 'AGUARDANDO APROVAÇÃO');
+      }
+      alert('Vistoria enviada para o cliente.');
+    } catch {
+      Alert.alert(
+        'Erro',
+        'Não foi possível enviar a vistoria. Verifique sua conexão e tente novamente.',
+      );
+    } finally {
+      setEnviando(false);
+    }
     router.replace('/home');
   }
 
@@ -48,7 +74,11 @@ export default function SaudeScreen() {
           </Text>
         </View>
 
-        <Botao titulo="Enviar para aprovação do cliente" onPress={enviar} />
+        <Botao
+          titulo={enviando ? 'Enviando...' : 'Enviar para aprovação do cliente'}
+          onPress={enviar}
+        />
+        {enviando && <ActivityIndicator color={CORES.vermelho} style={styles.carregando} />}
       </View>
     </View>
   );
@@ -91,5 +121,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '900',
     marginTop: 4,
+  },
+  carregando: {
+    marginTop: 12,
   },
 });

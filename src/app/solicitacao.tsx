@@ -4,20 +4,17 @@ import { Ionicons } from '@expo/vector-icons';
 import { Botao, Card, CORES, GradientBackground, ScreenHeader, StatusBadge } from '@/components/ui';
 import {
   CODIGO_MECANICO,
-  adicionarOrdemServico,
-  adicionarVeiculo,
   codigoMecanicoSolicitado,
-  ordensServico,
+  definirOsIdEmAndamento,
   perfilAtual,
   vistoriaEmAndamento,
-  type OrdemServico,
-  type Veiculo,
 } from '@/store';
+import { criarOrdemServico, criarVeiculo } from '@/services/api';
 
 export default function SolicitacaoScreen() {
   const mecanico = perfilAtual === 'mecanico';
 
-  function receber() {
+  async function receber() {
     if (codigoMecanicoSolicitado.trim() !== CODIGO_MECANICO) {
       Alert.alert(
         'Código não confere',
@@ -26,39 +23,49 @@ export default function SolicitacaoScreen() {
       return;
     }
 
-    const veiculo: Veiculo = {
-      id: `veiculo-${Date.now()}`,
-      clienteId: '',
-      placa: vistoriaEmAndamento.veiculo.placa,
-      marca: vistoriaEmAndamento.veiculo.marca,
-      modelo: vistoriaEmAndamento.veiculo.modelo,
-      ano: vistoriaEmAndamento.veiculo.ano,
-      cor: vistoriaEmAndamento.veiculo.cor,
-      quilometragem: vistoriaEmAndamento.veiculo.quilometragem,
-      foto: vistoriaEmAndamento.veiculo.foto,
-      ativo: true,
-    };
-    adicionarVeiculo(veiculo);
+    try {
+      // Garante que o veículo exista no backend
+      let veiculoId = vistoriaEmAndamento.veiculo.id;
+      const v = vistoriaEmAndamento.veiculo;
+      if (!veiculoId) {
+        if (!v.placa || !v.marca || !v.modelo) {
+          Alert.alert('Atenção', 'Dados do veículo incompletos. Volte e preencha os dados da vistoria.');
+          return;
+        }
+        const criado = await criarVeiculo({
+          clienteId: v.clienteId,
+          placa: v.placa,
+          marca: v.marca,
+          modelo: v.modelo,
+          ano: v.ano,
+          cor: v.cor,
+          quilometragem: v.quilometragem,
+          foto: v.foto || null,
+        });
+        veiculoId = criado.veiculo.id;
+        vistoriaEmAndamento.veiculo.id = veiculoId;
+      }
 
-    const os: OrdemServico = {
-      id: `os-${Date.now()}`,
-      numero: ordensServico.length + 1,
-      clienteId: '',
-      veiculoId: veiculo.id,
-      mecanicoId: '',
-      status: 'EM ANÁLISE',
-      dataAbertura: vistoriaEmAndamento.data || new Date().toLocaleDateString('pt-BR'),
-      dataConclusao: null,
-      valorTotal: 0,
-      valorDesconto: 0,
-      valorFinal: 0,
-      observacoes: vistoriaEmAndamento.observacoes,
-      problemas: [],
-      condicao: 'ok',
-    };
-    adicionarOrdemServico(os);
+      // Cria a ordem de serviço no backend
+      const criada = await criarOrdemServico({
+        clienteId: vistoriaEmAndamento.veiculo.clienteId,
+        veiculoId,
+        status: 'EM ANÁLISE',
+        dataAbertura: vistoriaEmAndamento.data || new Date().toLocaleDateString('pt-BR'),
+        observacoes: vistoriaEmAndamento.observacoes,
+        problemas: [],
+        condicao: 'ok',
+        checklist: vistoriaEmAndamento.checklist,
+      });
 
-    router.replace('/cadastro-vistoria');
+      definirOsIdEmAndamento(criada.ordem.id);
+      router.replace('/cadastro-vistoria');
+    } catch (erro) {
+      Alert.alert(
+        'Erro ao receber',
+        erro instanceof Error ? erro.message : 'Não foi possível iniciar a vistoria.',
+      );
+    }
   }
 
   return (

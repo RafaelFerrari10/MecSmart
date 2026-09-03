@@ -6,8 +6,6 @@ import {
   Card,
   CORES,
   GradientBackground,
-  InfoCard,
-  Linha,
   ScreenHeader,
 } from '@/components/ui';
 import { PopupConfirmacao } from '@/components/popup-confirmacao';
@@ -62,6 +60,7 @@ export default function DetalhesPecaScreen() {
           </Card>
 
           <Botao titulo="Editar Peça" onPress={() => router.push('/editar-peca')} estilo={styles.botaoEditar} />
+          <Botao titulo="Movimentar Estoque" onPress={() => router.push('/movimentar-estoque')} estilo={styles.botaoMovimentar} />
           <Botao
             titulo="Excluir"
             variante="contorno"
@@ -149,6 +148,9 @@ const styles = StyleSheet.create({
   },
   botaoEditar: {
     marginTop: 20,
+  },
+  botaoMovimentar: {
+    marginTop: 0,
   },
   botaoExcluir: {
     marginBottom: 10,

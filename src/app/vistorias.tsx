@@ -12,14 +12,10 @@ import {
   ScreenHeader,
   StatusBadge,
 } from '@/components/ui';
-import { listarVeiculos } from '@/services/api';
+import { listarOrdensServico, buscarVeiculo, buscarUsuario, listarVeiculos, type Veiculo as ApiVeiculo } from '@/services/api';
 import {
-  buscarUsuario,
-  buscarVeiculo,
-  ordensServico,
   perfilAtual,
   usuarioLogado,
-  veiculos,
   type OrdemServico,
   type Veiculo,
 } from '@/store';
@@ -37,30 +33,34 @@ export default function VistoriasScreen() {
 /*  CLIENTE                                                            */
 /* ------------------------------------------------------------------ */
 function ClientVistorias() {
-  const [veiculosCli, setVeiculosCli] = useState<Veiculo[]>(veiculos);
+  const [veiculosCli, setVeiculosCli] = useState<Veiculo[]>([]);
+  const [vistorias, setVistorias] = useState<OrdemServico[]>([]);
 
   useEffect(() => {
     let ativo = true;
     (async () => {
       try {
         if (usuarioLogado?.uid) {
-          const dados = await listarVeiculos(usuarioLogado.uid);
-          if (ativo && dados.veiculos.length > 0) {
-            setVeiculosCli(
-              dados.veiculos.map((v) => ({
-                id: v.id,
-                clienteId: v.clienteId,
-                placa: v.placa,
-                marca: v.marca,
-                modelo: v.modelo,
-                ano: v.ano,
-                cor: v.cor,
-                quilometragem: v.quilometragem,
-                foto: v.foto ?? '',
-                ativo: v.ativo,
-              })),
-            );
-          }
+          const [dados, ordens] = await Promise.all([
+            listarVeiculos(usuarioLogado.uid),
+            listarOrdensServico({ clienteId: usuarioLogado.uid }),
+          ]);
+          if (!ativo) return;
+          setVeiculosCli(
+            dados.veiculos.map((v) => ({
+              id: v.id,
+              clienteId: v.clienteId,
+              placa: v.placa,
+              marca: v.marca,
+              modelo: v.modelo,
+              ano: v.ano,
+              cor: v.cor,
+              quilometragem: v.quilometragem,
+              foto: v.foto ?? '',
+              ativo: v.ativo,
+            })),
+          );
+          setVistorias(ordens.ordens);
         }
       } catch {
         // servidor indisponível
@@ -70,7 +70,7 @@ function ClientVistorias() {
   }, []);
 
   const primeiroVeiculo = veiculosCli[veiculosCli.length - 1];
-  const vistorias = ordensServico;
+  const buscarVeiculo = (id: string) => veiculosCli.find((v) => v.id === id);
 
   return (
     <View style={styles.container}>
@@ -105,7 +105,12 @@ function ClientVistorias() {
                   </Text>
                 </Pressable>
               ) : (
-                <Text style={styles.vazio}>Nenhum veículo cadastrado.</Text>
+                <Pressable
+                  style={({ pressed }) => [styles.cardAdicionar, pressed && { opacity: 0.7 }]}
+                  onPress={() => router.push('/cadastrar-veiculo')}
+                >
+                  <Text style={styles.cardAdicionarTexto}>Cadastrar veículo</Text>
+                </Pressable>
               )}
 
               {veiculosCli.length > 1 && (
@@ -202,6 +207,47 @@ function ClientVistorias() {
 /*  MECÂNICO                                                           */
 /* ------------------------------------------------------------------ */
 function MechanicVistorias() {
+  const [ordens, setOrdens] = useState<OrdemServico[]>([]);
+  const [veiculoMap, setVeiculoMap] = useState<Record<string, ApiVeiculo | null>>({});
+  const [clienteMap, setClienteMap] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        const { ordens: lista } = await listarOrdensServico();
+        if (!ativo) return;
+        setOrdens(lista);
+        const vMap: Record<string, ApiVeiculo | null> = {};
+        const cMap: Record<string, string> = {};
+        for (const os of lista) {
+          if (os.veiculoId && !(os.veiculoId in vMap)) {
+            try {
+              const { veiculo } = await buscarVeiculo(os.veiculoId);
+              vMap[os.veiculoId] = veiculo;
+            } catch {
+              vMap[os.veiculoId] = null;
+            }
+          }
+          if (os.clienteId && !(os.clienteId in cMap)) {
+            try {
+              const u = await buscarUsuario(os.clienteId);
+              cMap[os.clienteId] = u.usuario?.nome || '—';            } catch {
+              cMap[os.clienteId] = '—';
+            }
+          }
+        }
+        if (ativo) {
+          setVeiculoMap(vMap);
+          setClienteMap(cMap);
+        }
+      } catch {
+        // servidor indisponível
+      }
+    })();
+    return () => { ativo = false; };
+  }, []);
+
   function abrir(os: OrdemServico) {
     if (os.status === 'PENDENTE') {
       router.push('/solicitacao');
@@ -219,7 +265,7 @@ function MechanicVistorias() {
         <FlatList
           style={styles.lista}
           contentContainerStyle={styles.listaConteudo}
-          data={ordensServico}
+          data={ordens}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
             <View style={styles.vazioArea}>
@@ -230,13 +276,12 @@ function MechanicVistorias() {
             </View>
           }
           renderItem={({ item }) => {
-            const veiculo = buscarVeiculo(item.veiculoId);
-            const cliente = buscarUsuario(item.clienteId);
+            const veiculo = veiculoMap[item.veiculoId] ?? undefined;
             return (
               <Pressable onPress={() => abrir(item)}>
                 <Card>
                   <Text style={styles.mecNome}>
-                    {cliente?.nome ?? '—'}
+                    {clienteMap[item.clienteId] ?? '—'}
                   </Text>
                   <View style={styles.mecLinha}>
                     <Text style={styles.mecPlaca}>{veiculo?.placa ?? '—'}</Text>

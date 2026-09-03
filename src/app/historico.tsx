@@ -1,9 +1,26 @@
+import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Card, CORES, GradientBackground, ScreenHeader, StatusBadge } from '@/components/ui';
-import { buscarVeiculo, ordensServico } from '@/store';
+import { listarOrdensServico } from '@/services/api';
+import { buscarVeiculo, ordensServico, type OrdemServico } from '@/store';
 
 export default function HistoricoScreen() {
+  const [ordens, setOrdens] = useState<OrdemServico[]>(ordensServico);
+
+  useEffect(() => {
+    let ativo = true;
+    (async () => {
+      try {
+        const { ordens: lista } = await listarOrdensServico();
+        if (ativo && lista.length > 0) setOrdens(lista);
+      } catch {
+        // servidor indisponível: mantém o fallback do store
+      }
+    })();
+    return () => { ativo = false; };
+  }, []);
+
   return (
     <View style={styles.container}>
       <GradientBackground />
@@ -12,7 +29,7 @@ export default function HistoricoScreen() {
 
         <FlatList
           contentContainerStyle={styles.listaConteudo}
-          data={ordensServico}
+          data={ordens}
           keyExtractor={(item) => item.id}
           ListEmptyComponent={
             <View style={styles.vazio}>

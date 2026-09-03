@@ -37,6 +37,7 @@ const pecasCol = criarColecao('pecas.json');
 const itensOSCol = criarColecao('itensOS.json');
 const financeiroCol = criarColecao('financeiro.json');
 const agendamentosCol = criarColecao('agendamentos.json');
+const ordensCol = criarColecao('ordensServico.json');
 
 module.exports = {
   carregarUsuarios: usuariosCol.carregar,
@@ -55,4 +56,6 @@ module.exports = {
   salvarFinanceiro: financeiroCol.salvar,
   carregarAgendamentos: agendamentosCol.carregar,
   salvarAgendamentos: agendamentosCol.salvar,
+  carregarOrdens: ordensCol.carregar,
+  salvarOrdens: ordensCol.salvar,
 };

@@ -1,4 +1,5 @@
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import {
   Botao,
@@ -10,10 +11,25 @@ import {
   Linha,
   ScreenHeader,
 } from '@/components/ui';
+import { alterarStatusOrdemServico } from '@/services/api';
+import { osIdEmAndamento } from '@/store';
 
 export default function AprovacaoScreen() {
-  function aprovar() {
-    router.replace('/retirada');
+  const [carregando, setCarregando] = useState(false);
+
+  async function aprovar() {
+    if (carregando) return;
+    setCarregando(true);
+    try {
+      if (osIdEmAndamento) {
+        await alterarStatusOrdemServico(osIdEmAndamento, 'APROVADA');
+      }
+      router.replace('/retirada');
+    } catch {
+      Alert.alert('Erro', 'Não foi possível aprovar. Verifique sua conexão.');
+    } finally {
+      setCarregando(false);
+    }
   }
 
   function naoAprovar() {
@@ -43,8 +59,9 @@ export default function AprovacaoScreen() {
           </Text>
         </Card>
 
-        <Botao variante="verde" titulo="Aprovar vistoria" onPress={aprovar} />
+        <Botao variante="verde" titulo={carregando ? 'Aprovando...' : 'Aprovar vistoria'} onPress={aprovar} />
         <Botao variante="contorno" titulo="Não aprovar / solicitar esclarecimento" onPress={naoAprovar} />
+        {carregando && <ActivityIndicator color={CORES.vermelho} style={styles.carregando} />}
       </View>
     </View>
   );
@@ -71,5 +88,8 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 18,
     marginTop: 14,
+  },
+  carregando: {
+    marginTop: 12,
   },
 });

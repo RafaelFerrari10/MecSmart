@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import {
@@ -13,10 +13,12 @@ import { useVoiceAssistant } from '@/contexts/VoiceAssistContext';
 import {
   CHECKLIST_ITENS,
   itemChecklistInicial,
+  osIdEmAndamento,
   vistoriaEmAndamento,
   type Condicao,
 } from '@/store';
 import type { ComandoVoz } from '@/utils/voiceCommands';
+import { atualizarOrdemServico } from '@/services/api';
 
 const OPCOES: Condicao[] = ['ok', 'atencao', 'problema'];
 const ICONES: Record<Condicao, string> = { ok: 'checkmark-circle', atencao: 'warning', problema: 'close-circle' };
@@ -69,8 +71,18 @@ export default function ChecklistScreen() {
     speak(`Etapa ${atual + 1} de ${TOTAL_ETAPAS}. ${CHECKLIST_ITENS[atual]}. Diga bom, atenção ou problema.`);
   }, [speak]);
 
-  const finalizar = useCallback(() => {
+  const finalizar = useCallback(async () => {
     vistoriaEmAndamento.checklist = checklist;
+    try {
+      if (osIdEmAndamento) {
+        await atualizarOrdemServico(osIdEmAndamento, { checklist });
+      }
+    } catch (erro) {
+      Alert.alert(
+        'Aviso',
+        erro instanceof Error ? erro.message : 'Não foi possível salvar o checklist.',
+      );
+    }
     speak('Checklist finalizado. Enviando para análise.');
     router.push('/saude');
   }, [checklist, speak]);

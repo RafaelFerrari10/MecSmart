@@ -199,10 +199,36 @@ function MechanicHome({ nome }: { nome: string }) {
 
       <Pressable
         style={({ pressed }) => [styles.botaoEstoque, pressed && { opacity: 0.7 }]}
-        onPress={() => router.push('/vistorias')}
+        onPress={() => router.push('/estoque')}
       >
         <Text style={styles.botaoEstoqueTexto}>Estoque</Text>
       </Pressable>
+
+      <View style={styles.modulos}>
+        <Pressable
+          style={({ pressed }) => [styles.botaoModulo, pressed && { opacity: 0.7 }]}
+          onPress={() => router.push('/financeiro')}
+        >
+          <Ionicons name="cash-outline" size={18} color={CORES.verde} />
+          <Text style={styles.botaoModuloTexto}>Financeiro</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.botaoModulo, pressed && { opacity: 0.7 }]}
+          onPress={() => router.push('/agendamentos')}
+        >
+          <Ionicons name="calendar-outline" size={18} color={CORES.azul} />
+          <Text style={styles.botaoModuloTexto}>Agendamentos</Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [styles.botaoModulo, pressed && { opacity: 0.7 }]}
+          onPress={() => router.push('/itens-os')}
+        >
+          <Ionicons name="list-outline" size={18} color={CORES.roxo} />
+          <Text style={styles.botaoModuloTexto}>Itens de OS</Text>
+        </Pressable>
+      </View>
     </>
   );
 }
@@ -371,5 +397,25 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '800',
     textTransform: 'uppercase',
+  },
+  modulos: {
+    marginTop: 14,
+    gap: 10,
+  },
+  botaoModulo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    height: 46,
+    borderRadius: 10,
+    backgroundColor: CORES.card,
+    borderColor: CORES.cardBorder,
+    borderWidth: 1,
+    paddingHorizontal: 14,
+  },
+  botaoModuloTexto: {
+    color: CORES.branco,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

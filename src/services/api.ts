@@ -1,4 +1,32 @@
-const API_URL = 'http://localhost:3000/api';
+import Constants from 'expo-constants';
+
+// Resolve a base da API automaticamente:
+// - Na web (ou quando não há host disponível) usa localhost.
+// - Em emulador/dispositivo físico usa o IP do servidor Expo (a máquina
+//   que está rodando o backend), para que seja alcançável pela rede.
+const PORT = 3000;
+
+// Permite sobrescrever manualmente o endereço da API, ex.:
+//   EXPO_PUBLIC_API_URL=http://192.168.0.39:3000/api  npx expo start
+// Útil quando o auto-detect não encontra o IP da máquina (ex.: emulador/túnel).
+const API_URL = (() => {
+  const manual = process.env.EXPO_PUBLIC_API_URL;
+  if (manual) {
+    return manual.replace(/\/+$/, '');
+  }
+  try {
+    const hostUri = Constants.expoConfig?.hostUri;
+    const host = hostUri?.split(':')[0];
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return `http://${host}:${PORT}/api`;
+    }
+  } catch {
+    // ignora e segue para o padrão
+  }
+  return `http://localhost:${PORT}/api`;
+})();
+
+console.log(`[api] usando base: ${API_URL}`);
 
 export type TipoUsuario = 'cliente' | 'mecanico';
 
@@ -91,15 +119,26 @@ interface RespostaErro {
 }
 
 async function requisicao<T>(metodo: string, rota: string, corpo?: unknown): Promise<T> {
+  const timeoutMs = 8000;
+  const controle = new AbortController();
+  const temporizador = setTimeout(() => controle.abort(), timeoutMs);
+
   let resposta: Response;
   try {
     resposta = await fetch(`${API_URL}${rota}`, {
       method: metodo,
       headers: corpo !== undefined ? { 'Content-Type': 'application/json' } : undefined,
       body: corpo !== undefined ? JSON.stringify(corpo) : undefined,
+      signal: controle.signal,
     });
-  } catch {
-    throw new Error('Não foi possível conectar ao servidor.');
+  } catch (erro) {
+    throw new Error(
+      (erro as Error)?.name === 'AbortError'
+        ? 'Não foi possível conectar ao servidor. Verifique se o backend está rodando.'
+        : 'Não foi possível conectar ao servidor.',
+    );
+  } finally {
+    clearTimeout(temporizador);
   }
 
   const dados = await resposta.json().catch(() => null);
@@ -181,6 +220,39 @@ export async function criarPeca(dados: Partial<Peca>): Promise<{ peca: Peca }> {
   return requisicao<{ peca: Peca }>('POST', '/pecas', dados);
 }
 
+export async function buscarPeca(id: string): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('GET', `/pecas/${id}`);
+}
+
+export async function atualizarPeca(
+  id: string,
+  dados: Partial<Peca>,
+): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('PUT', `/pecas/${id}`, dados);
+}
+
+export async function excluirPeca(id: string): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('DELETE', `/pecas/${id}`);
+}
+
+export async function desativarPeca(id: string): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('PATCH', `/pecas/${id}/desativar`);
+}
+
+export async function adicionarEstoquePeca(
+  id: string,
+  quantidade: number,
+): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('PATCH', `/pecas/${id}/adicionar`, { quantidade });
+}
+
+export async function retirarEstoquePeca(
+  id: string,
+  quantidade: number,
+): Promise<{ peca: Peca }> {
+  return requisicao<{ peca: Peca }>('PATCH', `/pecas/${id}/retirar`, { quantidade });
+}
+
 /* --------------------------- ItensOS --------------------------- */
 
 export async function listarItensOS(
@@ -192,6 +264,21 @@ export async function listarItensOS(
 
 export async function criarItemOS(dados: Partial<ItemOS>): Promise<{ itemOS: ItemOS }> {
   return requisicao<{ itemOS: ItemOS }>('POST', '/itensOS', dados);
+}
+
+export async function buscarItemOS(id: string): Promise<{ itemOS: ItemOS }> {
+  return requisicao<{ itemOS: ItemOS }>('GET', `/itensOS/${id}`);
+}
+
+export async function atualizarItemOS(
+  id: string,
+  dados: Partial<ItemOS>,
+): Promise<{ itemOS: ItemOS }> {
+  return requisicao<{ itemOS: ItemOS }>('PUT', `/itensOS/${id}`, dados);
+}
+
+export async function excluirItemOS(id: string): Promise<{ itemOS: ItemOS }> {
+  return requisicao<{ itemOS: ItemOS }>('DELETE', `/itensOS/${id}`);
 }
 
 /* --------------------------- Financeiro --------------------------- */
@@ -215,6 +302,24 @@ export async function criarLancamento(
 
 export async function pagarLancamento(id: string): Promise<{ financeiro: Financeiro }> {
   return requisicao<{ financeiro: Financeiro }>('PATCH', `/financeiro/${id}/pagar`);
+}
+
+export async function cancelarLancamento(id: string): Promise<{ financeiro: Financeiro }> {
+  return requisicao<{ financeiro: Financeiro }>('PATCH', `/financeiro/${id}/cancelar`);
+}
+
+export async function estornarLancamento(id: string): Promise<{ financeiro: Financeiro }> {
+  return requisicao<{ financeiro: Financeiro }>('PATCH', `/financeiro/${id}/estornar`);
+}
+
+export async function excluirLancamento(id: string): Promise<{ financeiro: Financeiro }> {
+  return requisicao<{ financeiro: Financeiro }>('DELETE', `/financeiro/${id}`);
+}
+
+export async function buscarLancamento(
+  id: string,
+): Promise<{ financeiro: Financeiro }> {
+  return requisicao<{ financeiro: Financeiro }>('GET', `/financeiro/${id}`);
 }
 
 /* --------------------------- Agendamentos --------------------------- */
@@ -246,4 +351,23 @@ export async function alterarStatusAgendamento(
   status: string,
 ): Promise<{ agendamento: Agendamento }> {
   return requisicao<{ agendamento: Agendamento }>('PATCH', `/agendamentos/${id}/${status}`);
+}
+
+export async function buscarAgendamento(
+  id: string,
+): Promise<{ agendamento: Agendamento }> {
+  return requisicao<{ agendamento: Agendamento }>('GET', `/agendamentos/${id}`);
+}
+
+export async function atualizarAgendamento(
+  id: string,
+  dados: Partial<Agendamento>,
+): Promise<{ agendamento: Agendamento }> {
+  return requisicao<{ agendamento: Agendamento }>('PUT', `/agendamentos/${id}`, dados);
+}
+
+export async function excluirAgendamento(
+  id: string,
+): Promise<{ agendamento: Agendamento }> {
+  return requisicao<{ agendamento: Agendamento }>('DELETE', `/agendamentos/${id}`);
 }

@@ -171,7 +171,51 @@ export const clientes: Cliente[] = [];
 export let veiculos: Veiculo[] = [];
 export let ordensServico: OrdemServico[] = [];
 export const servicos: Servico[] = [];
-export const pecas: Peca[] = [];
+export let pecas: Peca[] = [
+  { id: 'peca-1', codigo: 'PF-001', nome: 'Pastilha de Freio Dianteira', marca: 'Bosch', precoCusto: 45, precoVenda: 89.9, estoqueAtual: 12, estoqueMinimo: 5, ativo: true },
+  { id: 'peca-2', codigo: 'FO-002', nome: 'Filtro de Óleo do Motor', marca: 'Fram', precoCusto: 18, precoVenda: 35, estoqueAtual: 3, estoqueMinimo: 5, ativo: true },
+  { id: 'peca-3', codigo: 'CD-012', nome: 'Correia Dentada', marca: 'Dayco', precoCusto: 75, precoVenda: 145, estoqueAtual: 8, estoqueMinimo: 3, ativo: true },
+  { id: 'peca-4', codigo: 'VI-008', nome: 'Vela de Ignição Iridium', marca: 'NGK', precoCusto: 12, precoVenda: 25, estoqueAtual: 4, estoqueMinimo: 6, ativo: true },
+];
+
+export function adicionarPeca(peca: Peca) {
+  pecas = [...pecas, peca];
+}
+
+export function atualizarPeca(id: string, mudanca: Partial<Peca>) {
+  pecas = pecas.map((p) => (p.id === id ? { ...p, ...mudanca } : p));
+}
+
+export function removerPeca(id: string) {
+  pecas = pecas.filter((p) => p.id !== id);
+}
+
+/* ------------------------------------------------------------------ */
+/* Peça selecionada (fluxo detalhes / edição)                          */
+/* ------------------------------------------------------------------ */
+export let pecaSelecionada: Peca | null = null;
+
+export function definirPecaSelecionada(peca: Peca | null) {
+  pecaSelecionada = peca;
+}
+
+/* ------------------------------------------------------------------ */
+/* Lançamento financeiro selecionado (detalhes)                        */
+/* ------------------------------------------------------------------ */
+export let lancamentoSelecionado: Financeiro | null = null;
+
+export function definirLancamentoSelecionado(lancamento: Financeiro | null) {
+  lancamentoSelecionado = lancamento;
+}
+
+/* ------------------------------------------------------------------ */
+/* Agendamento selecionado (detalhes)                                  */
+/* ------------------------------------------------------------------ */
+export let agendamentoSelecionado: Agendamento | null = null;
+
+export function definirAgendamentoSelecionado(agendamento: Agendamento | null) {
+  agendamentoSelecionado = agendamento;
+}
 export const itensOS: ItemOS[] = [];
 export const financeiro: Financeiro[] = [];
 export const agendamentos: Agendamento[] = [];

@@ -1,0 +1,14 @@
+node_modules/
+banco.json
+mecanicos.json
+clientes.json
+veiculos.json
+pecas.json
+itensOS.json
+agendamentos.json
+financeiro.json
+*.log
+.env
+mecsmart-*.json
+*-firebase-adminsdk-*.json
+package-lock.json

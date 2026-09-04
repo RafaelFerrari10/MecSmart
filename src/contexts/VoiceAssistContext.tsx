@@ -1,7 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type PropsWithChildren } from 'react';
-import { AppState } from 'react-native';
+import { AppState, Platform } from 'react-native';
 import * as Speech from 'expo-speech';
-import { ExpoSpeechRecognitionModule, useSpeechRecognitionEvent, type ExpoSpeechRecognitionResultEvent } from 'expo-speech-recognition';
 import { interpretarComando, type ComandoVoz } from '@/utils/voiceCommands';
 
 export type VoiceMode = 'inactive' | 'prompt' | 'active';
@@ -19,7 +18,23 @@ type VoiceContextValue = {
 
 const VoiceAssistantContext = createContext<VoiceContextValue | null>(null);
 
-export function VoiceAssistantProvider({ children }: PropsWithChildren) {
+let SpeechRecognitionModule: any = null;
+let SpeechRecognitionHook: any = null;
+
+if (Platform.OS === 'ios' || Platform.OS === 'android') {
+  try {
+    const mod = require('expo-speech-recognition');
+    SpeechRecognitionModule = mod.ExpoSpeechRecognitionModule;
+    SpeechRecognitionHook = mod.useSpeechRecognitionEvent;
+  } catch {
+    SpeechRecognitionModule = null;
+    SpeechRecognitionHook = null;
+  }
+}
+
+function VoiceAssistantInner({ children }: PropsWithChildren) {
+  const useSpeechRecognitionEvent = SpeechRecognitionHook;
+  const ExpoSpeechRecognitionModule = SpeechRecognitionModule;
   const [mode, setMode] = useState<VoiceMode>('inactive');
   const [microphoneAvailable, setMicrophoneAvailable] = useState(false);
   const [listening, setListening] = useState(false);
@@ -52,52 +67,38 @@ export function VoiceAssistantProvider({ children }: PropsWithChildren) {
     } catch {}
   }, []);
 
-const falaIdRef = useRef(0);
+  const falaIdRef = useRef(0);
 
-const falar = useCallback((texto: string, depois?: () => void) => {
-  const falaId = ++falaIdRef.current;
-
-  pararEscuta();
-  Speech.stop();
-
-  Speech.speak(texto, {
-    language: 'pt-BR',
-
-    onDone: () => {
-      if (falaId !== falaIdRef.current) return;
-
-      depois?.();
-
-      if (modeRef.current !== 'inactive') {
-        iniciarEscuta();
-      }
-    },
-
-    onError: () => {
-      if (falaId !== falaIdRef.current) return;
-
-      depois?.();
-
-      if (modeRef.current !== 'inactive') {
-        iniciarEscuta();
-      }
-    },
-  });
-}, [iniciarEscuta, pararEscuta]);
+  const falar = useCallback((texto: string, depois?: () => void) => {
+    const falaId = ++falaIdRef.current;
+    pararEscuta();
+    Speech.stop();
+    Speech.speak(texto, {
+      language: 'pt-BR',
+      onDone: () => {
+        if (falaId !== falaIdRef.current) return;
+        depois?.();
+        if (modeRef.current !== 'inactive') iniciarEscuta();
+      },
+      onError: () => {
+        if (falaId !== falaIdRef.current) return;
+        depois?.();
+        if (modeRef.current !== 'inactive') iniciarEscuta();
+      },
+    });
+  }, [iniciarEscuta, pararEscuta]);
 
   const enableVoice = useCallback(async () => {
     const permissao = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     const disponivel = Boolean(permissao.granted);
     micRef.current = disponivel;
     setMicrophoneAvailable(disponivel);
-
     if (!disponivel) {
       setModeSafe('inactive');
       pararEscuta();
       Speech.speak('O microfone está desativado. Ative a permissão do microfone para usar o auxílio de voz.', { language: 'pt-BR' });
       return;
     }
-
     setModeSafe('active');
     falar('Auxílio de voz ativado.');
   }, [falar, pararEscuta, setModeSafe]);
@@ -114,7 +115,6 @@ const falar = useCallback((texto: string, depois?: () => void) => {
     micRef.current = disponivel;
     setMicrophoneAvailable(disponivel);
     setModeSafe('prompt');
-
     falar('Deseja ativar o auxílio de voz?', () => {
       if (modeRef.current === 'prompt' && disponivel) iniciarEscuta();
     });
@@ -134,17 +134,15 @@ const falar = useCallback((texto: string, depois?: () => void) => {
     restartTimerRef.current = setTimeout(iniciarEscuta, 250);
   });
 
-  useSpeechRecognitionEvent('result', (event: ExpoSpeechRecognitionResultEvent) => {
+  useSpeechRecognitionEvent('result', (event: any) => {
     const texto = event.results?.[0]?.transcript;
     if (!texto) return;
     const comando = interpretarComando(texto);
-
     if (modeRef.current === 'prompt') {
       if (comando.tipo === 'YES') enableVoice();
       else if (comando.tipo === 'NO') disableVoice();
       return;
     }
-
     if (modeRef.current === 'active' && comando.tipo !== 'UNKNOWN') {
       handlerRef.current?.(comando);
     }
@@ -160,7 +158,6 @@ const falar = useCallback((texto: string, depois?: () => void) => {
       if (state !== 'active') pararEscuta();
       else if (modeRef.current !== 'inactive' && micRef.current) iniciarEscuta();
     });
-
     return () => {
       mountedRef.current = false;
       subscription.remove();
@@ -175,6 +172,40 @@ const falar = useCallback((texto: string, depois?: () => void) => {
       {children}
     </VoiceAssistantContext.Provider>
   );
+}
+
+function VoiceAssistantFallback({ children }: PropsWithChildren) {
+  const speak = useCallback((texto: string) => {
+    Speech.speak(texto, { language: 'pt-BR' });
+  }, []);
+
+  const value: VoiceContextValue = {
+    mode: 'inactive',
+    microphoneAvailable: false,
+    listening: false,
+    startRepairVoice: async () => {
+      Speech.speak('O auxílio de voz não está disponível nesta versão.', { language: 'pt-BR' });
+    },
+    enableVoice: async () => {
+      Speech.speak('O auxílio de voz não está disponível nesta versão.', { language: 'pt-BR' });
+    },
+    disableVoice: () => {},
+    speak,
+    setCommandHandler: () => {},
+  };
+
+  return (
+    <VoiceAssistantContext.Provider value={value}>
+      {children}
+    </VoiceAssistantContext.Provider>
+  );
+}
+
+export function VoiceAssistantProvider({ children }: PropsWithChildren) {
+  if (SpeechRecognitionModule) {
+    return <VoiceAssistantInner>{children}</VoiceAssistantInner>;
+  }
+  return <VoiceAssistantFallback>{children}</VoiceAssistantFallback>;
 }
 
 export function useVoiceAssistant() {

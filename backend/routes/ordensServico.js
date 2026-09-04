@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { carregarOrdens, salvarOrdens, carregarUsuarios, carregarVeiculos } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const router = express.Router();
@@ -89,7 +89,7 @@ router.post('/ordensServico', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVAR OS NO FIREBASE
+// Salva a OS também no Firebase (rota opcional)
 router.post('/ordensServico-firebase', async (req, res) => {
   const {
     clienteId,
@@ -157,7 +157,7 @@ router.post('/ordensServico-firebase', async (req, res) => {
   }
 });
 
-// 🔥 LISTAR OS DO FIREBASE
+// Lista as OS direto do Firebase (rota opcional)
 router.get('/ordensServico-firebase', async (req, res) => {
   try {
     const { clienteId, veiculoId, mecanicoId, status } = req.query;

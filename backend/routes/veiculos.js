@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { carregarVeiculos, salvarVeiculos, carregarUsuarios } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const {
@@ -87,7 +87,7 @@ router.post('/veiculos', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva o veículo também no Firebase (rota opcional)
 router.post('/veiculos-firebase', async (req, res) => {
   const { clienteId, placa, marca, modelo, ano, cor, quilometragem, foto } = req.body;
 
@@ -162,7 +162,7 @@ router.post('/veiculos-firebase', async (req, res) => {
   }
 });
 
-// 🔥 NOVA ROTA - LISTAR VEÍCULOS DO FIREBASE
+// Lista os veículos direto do Firebase (rota opcional)
 router.get('/veiculos-firebase', async (req, res) => {
   try {
     const { clienteId, ativo } = req.query;

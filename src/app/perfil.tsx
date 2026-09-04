@@ -2,7 +2,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Botao, Card, CORES, GradientBackground, ScreenHeader } from '@/components/ui';
-import { perfilAtual, usuarioLogado, CODIGO_MECANICO } from '@/store';
+import { perfilAtual, usuarioLogado, definirUsuarioLogado, CODIGO_MECANICO } from '@/store';
 
 const ROTULOS_PERFIL: Record<'cliente' | 'mecanico', string> = {
   cliente: 'Cliente',
@@ -19,7 +19,7 @@ export default function PerfilScreen() {
   function handleSair() {
     Alert.alert('Sair da conta', 'Deseja realmente sair?', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Sair', style: 'destructive', onPress: () => router.replace('/login') },
+      { text: 'Sair', style: 'destructive', onPress: () => { definirUsuarioLogado(null); router.replace('/login'); } },
     ]);
   }
 

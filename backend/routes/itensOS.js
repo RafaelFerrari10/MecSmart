@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { carregarItensOS, salvarItensOS, carregarPecas, salvarPecas } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const { validarItemOS, validarAtualizacaoItemOS } = require('../validators/validarItemOS');
@@ -100,7 +100,7 @@ router.post('/itensOS', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva o item também no Firebase (rota opcional)
 router.post('/itensOS-firebase', async (req, res) => {
   const { ordemServicoId, tipo, itemId, quantidade } = req.body;
   let { nome, precoUnitario } = req.body;
@@ -189,7 +189,7 @@ router.post('/itensOS-firebase', async (req, res) => {
   }
 });
 
-// 🔥 NOVA ROTA - LISTAR ITENS OS DO FIREBASE
+// Lista os itens de OS direto do Firebase (rota opcional)
 router.get('/itensOS-firebase', async (req, res) => {
   try {
     const { ordemServicoId, tipo } = req.query;

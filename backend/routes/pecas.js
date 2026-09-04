@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { carregarPecas, salvarPecas } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const {
@@ -90,7 +90,7 @@ router.post('/pecas', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva a peça também no Firebase (rota opcional)
 router.post('/pecas-firebase', async (req, res) => {
   const { codigo, nome, marca, precoCusto, precoVenda, estoqueAtual, estoqueMinimo } = req.body;
 
@@ -158,7 +158,7 @@ router.post('/pecas-firebase', async (req, res) => {
   }
 });
 
-// 🔥 NOVA ROTA - LISTAR PEÇAS DO FIREBASE
+// Lista as peças direto do Firebase (rota opcional)
 router.get('/pecas-firebase', async (req, res) => {
   try {
     const { busca, ativo, abaixoMinimo } = req.query;

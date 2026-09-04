@@ -2,7 +2,7 @@ const express = require('express');
 const crypto = require('crypto');
 const { carregarFinanceiro, salvarFinanceiro, carregarUsuarios } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const {
@@ -81,7 +81,7 @@ router.post('/financeiro', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva o registro também no Firebase (rota opcional)
 router.post('/financeiro-firebase', async (req, res) => {
   const { ordemServicoId, clienteId, valor, formaPagamento, parcelas, status } = req.body;
 
@@ -147,7 +147,7 @@ router.post('/financeiro-firebase', async (req, res) => {
   }
 });
 
-// 🔥 NOVA ROTA - LISTAR FINANCEIRO DO FIREBASE
+// Lista o financeiro direto do Firebase (rota opcional)
 router.get('/financeiro-firebase', async (req, res) => {
   try {
     const { clienteId, ordemServicoId, status } = req.query;

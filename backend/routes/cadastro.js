@@ -15,7 +15,7 @@ const {
   validarMecanico,
 } = require('../validators/validarCadastro');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const router = express.Router();
@@ -126,7 +126,7 @@ router.post('/cadastro', async (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva o usuário também no Firebase (rota opcional)
 router.post('/cadastro-firebase', async (req, res) => {
   const { tipo, nome, email, senha, dataNascimento, telefone, cpf } = req.body;
 
@@ -172,7 +172,7 @@ router.post('/cadastro-firebase', async (req, res) => {
     const docRef = await db.collection('usuarios').add(firebaseData);
     const firebaseId = docRef.id;
 
-    // 🔥 2. SALVAR NO FIRESTORE - CLIENTES OU MECANICOS
+    // 2. Salvar no Firestore (clientes ou mecânicos)
     if (tipo === 'mecanico') {
       await db.collection('mecanicos').doc(firebaseId).set({
         especialidade: req.body.especialidade || '',
@@ -295,7 +295,7 @@ router.get('/usuarios', (req, res) => {
   return res.json({ sucesso: true, usuarios: perfis });
 });
 
-// 🔥 NOVA ROTA - LISTAR USUÁRIOS DO FIREBASE
+// Lista os usuários direto do Firebase (rota opcional)
 router.get('/usuarios-firebase', async (req, res) => {
   try {
     const snapshot = await db.collection('usuarios').get();

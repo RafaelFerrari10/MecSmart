@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
-// 🔥 CORS - permite requisições de outras origens (ex.: Expo web em :8081)
+// CORS - permite que o app (Expo web em :8081, por exemplo) acesse a API de outra origem
 app.use(
   cors({
     origin: '*',

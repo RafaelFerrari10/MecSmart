@@ -7,7 +7,7 @@ const {
   carregarVeiculos 
 } = require('../db');
 
-// 🔥 FIREBASE
+// Integração com o Firebase (opcional)
 const { db, admin } = require('../firebase-db');
 
 const {
@@ -117,7 +117,7 @@ router.post('/agendamentos', (req, res) => {
   });
 });
 
-// 🔥 NOVA ROTA - SALVA NO FIREBASE
+// Salva o agendamento também no Firebase (rota opcional)
 router.post('/agendamentos-firebase', async (req, res) => {
   const { clienteId, mecanicoId, veiculoId, data, hora, servicos, status, observacoes } = req.body;
 
@@ -211,7 +211,7 @@ router.post('/agendamentos-firebase', async (req, res) => {
   }
 });
 
-// 🔥 NOVA ROTA - LISTAR AGENDAMENTOS DO FIREBASE
+// Lista os agendamentos direto do Firebase (rota opcional)
 router.get('/agendamentos-firebase', async (req, res) => {
   try {
     const { clienteId, mecanicoId, data, status } = req.query;
